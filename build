@@ -1,0 +1,5 @@
+#!/bin/bash
+
+cc -o clib/csv-parser.o -fPIC -c clib/csv-parser.c
+cc -shared -o clib/csv-parser.so clib/csv-parser.o
+rm clib/csv-parser.o
