@@ -7,3 +7,4 @@ my CSV::Parser::NC $nc .= new;
 
 $nc.open-file('t/data/escaped.csv');
 $nc.get_line.say;
+$nc.get_line.say;

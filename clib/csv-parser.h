@@ -6,7 +6,7 @@ typedef struct line_s {
 } line;
 
 FILE* file_handle();
-line* get_line(FILE*,int*,int,int*,int,int*,int);
+line* get_line(FILE*,int*,int,int*,int,int*,int,int*,int);
 unsigned short * reset();
 unsigned short * parse(char*);
 int detect_end_line(char*,int,int*,int);
