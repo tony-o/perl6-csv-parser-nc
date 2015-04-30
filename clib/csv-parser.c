@@ -12,7 +12,7 @@ line* get_line(FILE* fh, int* end, int end_l, int* esc, int esc_l, int* quo, int
   line *s = malloc(sizeof(line));
   s->elems = 0;
   s->fields = malloc(s->elems * (sizeof(char*)));
-  char* toparse = malloc(128*sizeof(char)), *tmp = NULL;
+  char* toparse = malloc(128*sizeof(char));
   char buf;
   size_t line_len = 128, index = 0;
   int keepgoing = 1, inquote = 0;
@@ -21,8 +21,7 @@ line* get_line(FILE* fh, int* end, int end_l, int* esc, int esc_l, int* quo, int
     buf = fgetc(fh);
     if(line_len < index){
       line_len += 128;
-      tmp = realloc(toparse, line_len);
-      toparse = tmp;
+      realloc(toparse, line_len);
     }
     toparse[index] = buf;
     if(detect_quote(toparse, index, esc, esc_l, quo, quo_l)){
@@ -35,8 +34,10 @@ line* get_line(FILE* fh, int* end, int end_l, int* esc, int esc_l, int* quo, int
     if(!inquote && detect_end_line(toparse, index, sep, sep_l)){
       s->fields[s->elems] = malloc((index+1)*sizeof(char));
       strcpy(s->fields[s->elems], toparse);
-      s->fields[s->elems][index+1] = '\0';
-      memset(toparse, 0, index*sizeof(char));
+      s->fields[s->elems][index+1-sep_l] = '\0';
+      printf("SET[%d]:'%s'\n", s->elems, s->fields[s->elems]);
+      toparse = malloc(128*sizeof(char));
+      line_len = 128;
       index = -1;
       s->elems++;
     }

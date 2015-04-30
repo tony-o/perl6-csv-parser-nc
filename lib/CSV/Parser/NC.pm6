@@ -4,7 +4,7 @@ use NativeCall;
 
 class line is repr('CStruct') {
   has int8 $.elems;
-  has CArray[Str] $.array;
+  has CArray[OpaquePointer] $.array;
 };
 
 sub file_handle(Str $path) returns OpaquePointer is native('csv-parser.so') { * }
@@ -16,7 +16,7 @@ class CSV::Parser::NC {
   has Str $.escape_operator = '\\';
   has Str $.field_operator  = '"';
   has Str $.field_separator = ',';
-  has Bool $.contains_header_row = False;
+  has Bool $.contains_header_row is rw = False;
   has Str %.headers;
 
   has $.ls is rw;
@@ -60,9 +60,22 @@ class CSV::Parser::NC {
       $.contains_header_row = False;
       my line $h = get_line($self::fh, $.ls, $.ll, $.eo, $.el, $.fo, $.fl, $.fs, $.sl);
       for 0 .. $h.elems-1 {
-        %!headers{$_} = $h.fields[$_];
+        %!headers{$_} = nativecast(str, $h.array[$_]);
       }
     }
-    return get_line($self::fh, $.ls, $.ll, $.eo, $.el, $.fo, $.fl, $.fs, $.sl);
+    my line $l = get_line($self::fh, $.ls, $.ll, $.eo, $.el, $.fo, $.fl, $.fs, $.sl);
+    if %!headers.keys {
+      my %r;
+      for 0 .. $l.elems-1 {
+        %r{%!headers{$_}} = nativecast(str,$l.array[$_]) // Nil;
+      }
+      %r.perl.say;
+      return %r; 
+    }
+    my @r;
+    for 0 .. $l.elems-1 {
+      @r.push($l.array[$_]);
+    }
+    return @r;
   }
 }
