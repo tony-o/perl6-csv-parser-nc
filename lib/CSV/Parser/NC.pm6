@@ -67,7 +67,8 @@ class CSV::Parser::NC {
     if %!headers.keys {
       my %r;
       for 0 .. $l.elems-1 {
-        %r{%!headers{$_}} = nativecast(str,$l.array[$_]) // Nil;
+        $l.array[$_].say;
+        %r{%!headers{$_}} = nativecast(str, $l.array[$_]) // Nil;
       }
       %r.perl.say;
       return %r; 

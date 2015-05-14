@@ -12,16 +12,17 @@ line* get_line(FILE* fh, int* end, int end_l, int* esc, int esc_l, int* quo, int
   line *s = malloc(sizeof(line));
   s->elems = 0;
   s->fields = malloc(s->elems * (sizeof(char*)));
-  char* toparse = malloc(128*sizeof(char));
+  char* toparse = malloc(128*sizeof(char)), *tmp = NULL;
   char buf;
   size_t line_len = 128, index = 0;
-  int keepgoing = 1, inquote = 0;
+  int keepgoing = 1, inquote = 0, ii=0;
   while (!feof(fh) && keepgoing) {
     line_len++;
     buf = fgetc(fh);
     if(line_len < index){
       line_len += 128;
-      realloc(toparse, line_len);
+      tmp = realloc(toparse, line_len);
+      toparse = tmp;
     }
     toparse[index] = buf;
     if(detect_quote(toparse, index, esc, esc_l, quo, quo_l)){
@@ -35,21 +36,37 @@ line* get_line(FILE* fh, int* end, int end_l, int* esc, int esc_l, int* quo, int
       s->fields[s->elems] = malloc((index+1)*sizeof(char));
       strcpy(s->fields[s->elems], toparse);
       s->fields[s->elems][index+1-sep_l] = '\0';
-      printf("SET[%d]:'%s'\n", s->elems, s->fields[s->elems]);
+      printf("SET[%d]:'%s': ", s->elems, s->fields[s->elems]);
+      for(ii=0; s->fields[s->elems][ii] != '\0'; ii++){
+        printf("%d, ", s->fields[s->elems][ii]);
+      }
+      printf("\n");
       toparse = malloc(128*sizeof(char));
+      memset(toparse, 0, 128*sizeof(char));
       line_len = 128;
       index = -1;
       s->elems++;
     }
     if(!inquote && detect_end_line(toparse, index, end, end_l)){ 
       keepgoing = 0; 
+    } else { 
+      index++;
     }
-    index++;
   }
-  s->fields[s->elems] = malloc((index)*sizeof(char));
+  s->fields[s->elems] = malloc((index+1)*sizeof(char));
   strcpy(s->fields[s->elems], toparse);
   s->fields[s->elems][index] = '\0';
+  printf("SET[%d]:'%s'\n", s->elems, s->fields[s->elems]);
   s->elems++;
+  free(toparse);
+
+  for(keepgoing = 0; keepgoing < s->elems; keepgoing++){
+    printf("fields[%d]: ", keepgoing);
+    for(index = 0; s->fields[keepgoing][index] != '\0'; index++){
+      printf("%d, ", s->fields[keepgoing][index]);
+    }
+    printf("\n");
+  }
 
   return s;
 }
